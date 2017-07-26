@@ -22,10 +22,8 @@ import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
 import com.sun.net.httpserver.HttpServer;
 import com.sun.net.httpserver.HttpExchange.*;
-/**
- * Hello world!
- *
- */
+
+
 public class App 
 {	
 	
@@ -111,11 +109,12 @@ public class App
     	Topic t = worker.topics.get(topicId);
     	Topic tTotal = topics.get(topicId);
     	double numCallsMultiplier = Math.pow(1.0 * t.numTaken, 1 / 3.5);
-    	double numCallsScore = Math.pow(1.0 * t.numTaken, 1/2.5);
-    	double timeScore = Math.pow((tTotal.avgTime - t.avgTime) / tTotal.avgTime, 3);
-    	double successScore = Math.pow((t.successRate - tTotal.successRate) / tTotal.successRate, 3);
-    	double score = numCallsMultiplier * (timeScore + successScore);
-    	return score;
+//    	double numCallsScore = Math.pow(1.0 * t.numTaken, 1/2.5);
+//    	double timeScore = Math.pow((tTotal.avgTime - t.avgTime) / tTotal.avgTime, 3);
+//    	double successScore = Math.pow((t.successRate - tTotal.successRate) / tTotal.successRate, 3);
+//    	double score = numCallsMultiplier * (timeScore + successScore);
+    	double adjTime = t.avgTime - 180 * (t.successRate - tTotal.successRate);
+    	return numCallsMultiplier * (tTotal.avgTime - adjTime) / tTotal.avgTime;
     }
     
     public static Map<Integer, Topic> computeAverageForAllTopics(List<Worker> workers, Integer numTopics) {
