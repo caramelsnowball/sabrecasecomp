@@ -104,7 +104,13 @@ public class App
     	double successRate = (1.0 * successfulCalls) / totalCalls;
     	return new Topic(topicId, averageTime, successfulCalls, successRate, 0, 0);
     }
-    
+	
+    /**
+    * Computes a score for a worker for a given topic as a function of the number of calls  of that type taken
+    * by that employee, the average amount of time the employee takes to handle those calls (compared to the
+    * total average for that topic), and the success rate for that topic compared to average. This score is 
+    * intended to represent how good the worker is at handling that type of issue.
+    */
     public static double computeTopicScore(Worker worker, int topicId, Map<Integer, Topic> topics) {
     	Topic t = worker.topics.get(topicId);
     	Topic tTotal = topics.get(topicId);
@@ -131,12 +137,18 @@ public class App
     			Worker w = workers.get(i);
     			w.topics.get(j).score = computeTopicScore(w, j, topicAvg);
     			if (w.topics.get(j).score > 2 * topicAvg.get(j).score) {
+				// Set the score for the topic average to be half of the best person's
+				// score (note that this is not the mean).
     				topicAvg.get(j).score = w.topics.get(j).score / 2.0;
     			}
     		}
     	}
     }
-    
+	
+    /**
+    *  Computes a "preference" score for a worker to handle a given topic. This is based on how good they
+    *  are at handling that topic and the relative scarcity of workers adept at handling that topic.
+    */
     public static void computePreferences(List<Worker> workers, Integer numTopics, Map<Integer, Topic> topicAvg) {
     	for (int j = 0; j < numTopics; j++) {
     		int numAbove = 0;
@@ -145,6 +157,9 @@ public class App
     				numAbove++;
     			}
     		}
+		// The preference for a topic is based on the number of people who are at least half
+		// as good as the best person at handling that topic. This preference represents the
+		// scarcity of workers who can handle that topic.
     		topicAvg.get(j).preference = workers.size() / (numAbove * 1.0);
     	}
     	for (int j = 0; j < numTopics; j++) {
@@ -246,7 +261,14 @@ public class App
     		workers.add(new Worker(t, i));
 		}
     }
-    
+	
+    /**
+    *  Finds and ranks a candidate pool of workers to handle a call of a specified topic. The candidate pool
+    *  consists of workers for whom the topic is among their more preferred topics (in order to exclude employees
+    *  who may be good at handling certain calls but should be reserved to handle other topics, perhaps due
+    *  to their more specialized skillset). The candidate pool is then ranked by their topic score, i.e. how
+    *  good they are at handling calls of that topic.
+    */
     public static List<Worker> rankForCallTopic(int x, List<Worker> workers, final Integer topicId, 
     												Map<Integer, Topic> topicAvg) {
     	List<Worker> candidatePool = new ArrayList<Worker>();
@@ -261,6 +283,7 @@ public class App
 //    		}
     	}
     	if (candidatePool.isEmpty()) {
+		// Expand the number of workers we consider to handle this call
     		return rankForCallTopic(x + 1, workers, topicId, topicAvg);
     	}
 
